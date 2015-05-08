@@ -1,6 +1,6 @@
 class Integer
 
-  LOOKUP = {
+  NAMED_LOOKUP = {
       0 => 'zero', 1 => 'one', 2 => 'two', 3 => 'three', 4 => 'four', 5 => 'five', 6 => 'six', 7 => 'seven', 8 => 'eight', 9 => 'nine', 10 => 'ten',
       11 => 'eleven', 12 => 'twelve', 13 => 'thirteen', 14 => 'fourteen', 15 => 'fifteen', 16 => 'sixteen', 17 => 'seventeen', 18 => 'eighteen', 19 => 'nineteen', 20 => 'twenty',
       30 => 'thirty', 40 => 'forty', 50 => 'fifty', 60 => 'sixty', 70 => 'seventy', 80 => 'eighty', 90 => 'ninety'
@@ -12,30 +12,38 @@ class Integer
 
   def to_words
     return negate_to_words if negative?
-    return LOOKUP[self] if LOOKUP[self]
-    dividends.each do |i|
-      next if i > self
-      remainder = self % i
-      return (remainder > 0) ? to_words_with_remainder(remainder) : to_words_with_scale(i)
-    end
-  end
-
-  def dividends
-    SCALES.merge(LOOKUP).keys.sort.reverse
+    return NAMED_LOOKUP[self] if NAMED_LOOKUP[self]
+    (i = extract_scale) ? words_with_scale(i) : words_without_scale
   end
 
   private
 
+  def words_without_scale
+    remainder = self % max_named_integer
+    return join_with_remainder((self - remainder).to_words, remainder)
+  end
+
+  def words_with_scale(i)
+    qty = self / i
+    remainder = self % i
+    return join_with_remainder("#{qty.to_words} #{SCALES[i]}", remainder)
+  end
+
+  def join_with_remainder(left, remainder)
+    right = remainder.to_words
+    return (remainder > 0) ? [left, right].join(separator(remainder)) : left
+  end
+
+  def max_named_integer
+    NAMED_LOOKUP.keys.reject { |i| i > self }.sort.last
+  end
+
+  def extract_scale
+    SCALES.keys.reject { |i| i > self }.sort.last
+  end
+
   def negate_to_words
     "minus #{(self.abs).to_words}"
-  end
-
-  def to_words_with_scale(i)
-    "#{(self / i).to_words} #{SCALES[i]}"
-  end
-
-  def to_words_with_remainder(remainder)
-    [(self - remainder), remainder].map(&:to_words).join(separator(remainder))
   end
 
   def separator(remainder)

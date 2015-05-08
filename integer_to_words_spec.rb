@@ -22,7 +22,6 @@ describe 'interger to words' do
         80 => 'eighty',
         90 => 'ninety',
         73 => 'seventy-three',
-        90 => 'ninety',
         99 => 'ninety-nine',
         100 => 'one hundred',
         105 => 'one hundred and five',
